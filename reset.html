@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Password</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #f3f4f6;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.15;
+            z-index: 0;
+        }
+        .wrapper {
+            position: relative; width: 100%; max-width: 420px; margin: 20px; z-index: 10;
+        }
+        .container {
+            background-color: #ffffff; border-radius: 12px;
+            padding: 40px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb; color: #111827;
+        }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h2 { font-size: 28px; font-weight: 700; margin-bottom: 8px; color: #111827; }
+        .header p { font-size: 14px; color: #6b7280; }
+        .input-group { margin-bottom: 20px; display: flex; flex-direction: column; }
+        .input-group label { font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #374151; }
+        .input-group input {
+            width: 100%; padding: 12px 16px; background-color: #f9fafb;
+            border: 1px solid #d1d5db; border-radius: 8px;
+            font-size: 15px; font-family: inherit; color: #111827;
+            transition: all 0.2s ease; outline: none;
+        }
+        .input-group input::placeholder { color: #9ca3af; }
+        .input-group input:focus { border-color: #111827; background-color: #ffffff; box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.1); }
+        .submit-btn {
+            width: 100%; padding: 14px; margin-top: 10px;
+            background-color: #111827; color: #ffffff; border: none;
+            border-radius: 8px; font-size: 15px; font-weight: 600;
+            font-family: inherit; cursor: pointer; transition: all 0.2s ease;
+        }
+        .submit-btn:hover { background-color: #374151; }
+        .submit-btn:disabled { background-color: #9ca3af; cursor: not-allowed; }
+        .message-box {
+            margin-top: 16px; padding: 12px 16px; border-radius: 8px;
+            font-size: 14px; text-align: center; display: none; font-weight: 500;
+        }
+        .message-box.success { background-color: #dcfce7; color: #065f46; border: 1px solid #a7f3d0; }
+        .message-box.error { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        
+        .back-link { color: #111827; font-weight: 600; text-decoration: none; transition: color 0.2s; }
+        .back-link:hover { text-decoration: underline; color: #374151; }
+    </style>
+</head>
+<body>
+
+    <div class="wrapper">
+        <div class="container">
+            <div class="header">
+                <h2>Set New Password</h2>
+                <p>Enter your new password below</p>
+            </div>
+
+            <div class="input-group">
+                <label for="newPassword">New Password</label>
+                <input type="password" id="newPassword" placeholder="Enter new password">
+            </div>
+            <div class="input-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" placeholder="Confirm new password">
+            </div>
+
+            <button class="submit-btn" id="submitBtn" onclick="resetPassword()">
+                Update Password
+            </button>
+
+            <div class="message-box" id="messageBox"></div>
+
+<!-- ADD THIS -->
+<p style="text-align:center; margin-top:16px; font-size:13px; color:#9CA3AF;">
+    Remember your password? 
+    <a href="index.html" class="back-link">
+        Back to Login
+    </a>
+</p>
+        </div>
+    </div>
+
+    <script>
+        // ✅ Same Supabase credentials as your login page
+        const { createClient } = supabase
+        const SUPABASE_URL = 'https://owucxxsxsknujeofdbwx.supabase.co'
+        const SUPABASE_KEY = 'sb_publishable_zHDocadfoObmE3XGK1epYw_9R7xqbB6'
+        const client = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+        function showMessage(text, type) {
+            const box = document.getElementById('messageBox')
+            box.textContent = text
+            box.className = 'message-box ' + type
+            box.style.display = 'block'
+        }
+
+        async function resetPassword() {
+            const newPassword    = document.getElementById('newPassword').value.trim()
+            const confirmPassword = document.getElementById('confirmPassword').value.trim()
+            const btn = document.getElementById('submitBtn')
+
+            // Validation
+            if (!newPassword || !confirmPassword) {
+                showMessage('Please complete both password fields.', 'error')
+                return
+            }
+            if (newPassword !== confirmPassword) {
+                showMessage('The provided passwords do not match.', 'error')
+                return
+            }
+            if (newPassword.length < 6) {
+                showMessage('The new password must be at least 6 characters in length.', 'error')
+                return
+            }
+
+            btn.disabled = true
+            btn.textContent = 'Updating...'
+
+            // ✅ This updates the password using the token from the email link
+            const { error } = await client.auth.updateUser({ password: newPassword })
+
+            if (error) {
+                showMessage(error.message, 'error')
+                btn.disabled = false
+                btn.textContent = 'Update Password'
+            } else {
+                showMessage('Password successfully updated. Redirecting to login...', 'success')
+                setTimeout(() => window.location.href = 'login.html', 2000)
+            }
+        }
+    </script>
+</body>
+</html>

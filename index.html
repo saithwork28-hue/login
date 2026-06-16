@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #f3f4f6;
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.15;
+            z-index: 0;
+        }
+        .logo-container {
+            position: absolute; top: 24px; left: 24px; z-index: 20;
+            display: flex; align-items: center; gap: 10px;
+            text-decoration: none; color: #111827; font-weight: 700; font-size: 20px;
+        }
+        .custom-logo {
+            width: auto; height: 80px; object-fit: contain;
+        }
+        .login-wrapper {
+            position: relative; width: 100%; max-width: 420px; margin: 20px; z-index: 10;
+        }
+        .login-form-container {
+            background-color: #ffffff; border-radius: 12px;
+            padding: 40px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb; color: #111827;
+        }
+        .form-header { text-align: center; margin-bottom: 30px; }
+        .form-header h2 { font-size: 28px; font-weight: 700; margin-bottom: 8px; color: #111827; }
+        .form-header p { font-size: 14px; color: #6b7280; }
+        .input-group { margin-bottom: 20px; display: flex; flex-direction: column; }
+        .input-group label { font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #374151; }
+        .input-group input {
+            width: 100%; padding: 12px 16px; background-color: #f9fafb;
+            border: 1px solid #d1d5db; border-radius: 8px;
+            font-size: 15px; font-family: inherit; color: #111827;
+            transition: all 0.2s ease; outline: none;
+        }
+        .input-group input::placeholder { color: #9ca3af; }
+        .input-group input:focus { border-color: #111827; background-color: #ffffff; box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.1); }
+        .submit-btn {
+            width: 100%; padding: 14px; margin-top: 10px;
+            background-color: #111827; color: #ffffff; border: none;
+            border-radius: 8px; font-size: 15px; font-weight: 600;
+            font-family: inherit; cursor: pointer; transition: all 0.2s ease;
+        }
+        .submit-btn:hover { background-color: #374151; }
+        .submit-btn:disabled { background-color: #9ca3af; cursor: not-allowed; }
+
+        /* Message Box */
+        .message-box {
+            margin-top: 16px; padding: 12px 16px;
+            border-radius: 8px; font-size: 14px; font-weight: 500;
+            text-align: center; display: none; 
+        }
+        .message-box.success { background-color: #dcfce7; color: #065f46; border: 1px solid #a7f3d0; }
+        .message-box.error { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+        /* Toggle link */
+        .toggle-link {
+            text-align: center; margin-top: 24px;
+            font-size: 14px; color: #6b7280;
+        }
+        .toggle-link span:last-child {
+            color: #111827; cursor: pointer; font-weight: 600; transition: color 0.2s;
+        }
+        .toggle-link span:last-child:hover { text-decoration: underline; }
+        .forgot-link { color: #4b5563; font-size: 13px; font-weight: 500; cursor: pointer; transition: color 0.2s; }
+        .forgot-link:hover { color: #111827; text-decoration: underline; }
+
+        @media (max-width: 480px) {
+            .login-form-container { padding: 32px 24px; }
+            .form-header h2 { font-size: 24px; }
+            .login-wrapper { margin: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <a href="#" class="logo-container">
+        <img src="../Screenshot_2026-06-15_094035-removebg-preview.png" alt="Company Logo" class="custom-logo">
+    </a>
+
+    <!-- Login Form -->
+    <div class="login-wrapper">
+        <div class="login-form-container">
+            <div class="form-header">
+                <h2 id="formTitle">Welcome</h2>
+                <p id="formSubtitle">Please enter your details to sign up</p>
+            </div>
+
+            <div class="input-group" id="nameGroup">
+                <label for="fullName">Full Name</label>
+                <input type="text" id="fullName" placeholder="Enter your full name">
+            </div>
+            <div class="input-group" id="mobileGroup">
+                <label for="mobileNumber">Mobile Number</label>
+                <input type="tel" id="mobileNumber" placeholder="Enter your mobile number">
+            </div>
+            <div class="input-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" placeholder="Enter your email address">
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="••••••••">
+            </div>
+
+            <button class="submit-btn" id="submitBtn" onclick="handleSubmit()">Sign Up</button>
+
+            <p id="forgotPasswordContainer" style="text-align:center; margin-top:12px; display: none;">
+                <span onclick="forgotPassword()" class="forgot-link">
+                    Forgot Password?
+                </span>
+            </p>
+
+            <!-- Success / Error Message -->
+            <div class="message-box" id="messageBox"></div>
+
+            <!-- Toggle between Login and Sign Up -->
+            <div class="toggle-link">
+                <span id="toggleText">Already have an account? </span>
+                <span onclick="toggleMode()">Login</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ✅ Supabase Init — no extra spaces!
+        const { createClient } = supabase
+        const SUPABASE_URL = 'https://owucxxsxsknujeofdbwx.supabase.co'
+        const SUPABASE_KEY = 'sb_publishable_zHDocadfoObmE3XGK1epYw_9R7xqbB6'
+        const client = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+        // Mode: 'signup' or 'login'
+        let currentMode = 'signup'
+
+        // Toggle between Login and Sign Up
+        function toggleMode() {
+            currentMode = currentMode === 'signup' ? 'login' : 'signup'
+
+            const isSignup = currentMode === 'signup'
+            document.getElementById('formTitle').textContent = isSignup ? 'Welcome' : 'Welcome Back'
+            document.getElementById('formSubtitle').textContent = isSignup ? 'Please enter your details to sign up' : 'Please enter your details to login'
+            document.getElementById('submitBtn').textContent = isSignup ? 'Sign Up' : 'Login'
+            document.getElementById('nameGroup').style.display = isSignup ? 'flex' : 'none'
+            document.getElementById('mobileGroup').style.display = isSignup ? 'flex' : 'none'
+            document.getElementById('toggleText').textContent = isSignup ? 'Already have an account? ' : "Don't have an account? "
+            hideMessage()
+            document.getElementById('forgotPasswordContainer').style.display = isSignup ? 'none' : 'block'
+        }
+
+        // Show message box
+        function showMessage(text, type) {
+            const box = document.getElementById('messageBox')
+            box.textContent = text
+            box.className = 'message-box ' + type
+            box.style.display = 'block'
+        }
+
+        function hideMessage() {
+            document.getElementById('messageBox').style.display = 'none'
+        }
+
+        // Main handler
+        async function handleSubmit() {
+            const email    = document.getElementById('email').value.trim()
+            const password = document.getElementById('password').value.trim()
+            const btn      = document.getElementById('submitBtn')
+
+            if (!email || !password) {
+                showMessage('Please provide both an email address and a password.', 'error')
+                return
+            }
+            
+            if (currentMode === 'signup') {
+                const mobile = document.getElementById('mobileNumber').value.trim()
+                if (!/^\d{10}$/.test(mobile)) {
+                    showMessage('Invalid details: Mobile number must be exactly 10 digits.', 'error')
+                    return
+                }
+            }
+
+            btn.disabled = true
+            btn.textContent = 'Please wait...'
+            hideMessage()
+
+            if (currentMode === 'signup') {
+                await handleSignUp(email, password)
+            } else {
+                await handleLogin(email, password)
+            }
+
+            btn.disabled = false
+            btn.textContent = currentMode === 'signup' ? 'Sign Up' : 'Login'
+        }
+
+        // Sign Up
+        async function handleSignUp(email, password) {
+            const fullName = document.getElementById('fullName').value.trim()
+            const mobile   = document.getElementById('mobileNumber').value.trim()
+
+            const { data, error } = await client.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: { full_name: fullName, mobile: mobile }  // saved to user profile
+                }
+            })
+
+            if (error) {
+                showMessage(error.message, 'error')
+            } else {
+                showMessage('Account created successfully. You may now log in.', 'success')
+                // Auto switch to login after signup
+                setTimeout(() => toggleMode(), 2000)
+            }
+        }
+
+        // Login
+        async function handleLogin(email, password) {
+            const { data, error } = await client.auth.signInWithPassword({ email, password })
+
+            if (error) {
+                showMessage(error.message, 'error')
+            } else {
+                showMessage('Login successful. Redirecting securely...', 'success')
+                // 🔁 Change 'dashboard.html' to your next page
+              setTimeout(() => window.location.href = 'https://saithwork28-hue.github.io/projects/', 1500)
+            }
+        }
+        
+        // Forgot Password
+        async function forgotPassword() {
+            const email = document.getElementById('email').value.trim()
+
+            if (!email) {
+                showMessage('Please enter your email address to reset your password.', 'error')
+                return
+            }
+
+            const { error } = await client.auth.resetPasswordForEmail(email, {
+                redirectTo: 'http://127.0.0.1:5500/reset.html'  // Corrected to match your reset.html file
+            })
+
+            if (error) {
+                showMessage(error.message, 'error')
+            } else {
+                showMessage('A password reset link has been dispatched to your email.', 'success')
+            }
+        }
+
+        // Allow Enter key to submit
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') handleSubmit()
+        })
+    </script>
+</body>
+</html>
