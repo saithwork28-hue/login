@@ -8,7 +8,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
 
     <style>
@@ -148,7 +147,7 @@
     <div class="login-wrapper">
         <div class="login-form-container">
             <a href="#" class="logo-container">
-                <img src="./jclicks.png" alt="Company Logo" class="custom-logo">
+                <img src="../Screenshot_2026-06-15_094035-removebg-preview.png" alt="Company Logo" class="custom-logo">
             </a>
             <div class="form-header">
                 <h2 id="formTitle">Welcome</h2>
@@ -226,12 +225,12 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // ✅ Supabase Init — no extra spaces!
-        const { createClient } = supabase
-        const SUPABASE_URL = 'https://owucxxsxsknujeofdbwx.supabase.co'
-        const SUPABASE_KEY = 'sb_publishable_zHDocadfoObmE3XGK1epYw_9R7xqbB6'
-        const client = createClient(SUPABASE_URL, SUPABASE_KEY)
+        const { createClient } = window.supabase;
+        const SUPABASE_URL = 'https://owucxxsxsknujeofdbwx.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_zHDocadfoObmE3XGK1epYw_9R7xqbB6';
+        const client = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // Mode: 'signup' or 'login'
         let currentMode = 'signup'
@@ -271,26 +270,26 @@
             const btn      = document.getElementById('submitBtn')
 
             if (!email || !password) {
-                showMessage('Please provide both an email address and a password.', 'error')
+                showMessage('Please provide both your email address and password.', 'error')
                 return
             }
             
             if (currentMode === 'signup') {
                 const mobile = document.getElementById('mobileNumber').value.trim()
                 if (!/^\d{10}$/.test(mobile)) {
-                    showMessage('Invalid details: Mobile number must be exactly 10 digits.', 'error')
+                    showMessage('Please enter a valid 10-digit mobile number.', 'error')
                     return
                 }
             }
 
             const captchaToken = typeof hcaptcha !== 'undefined' ? hcaptcha.getResponse() : ''
             if (!captchaToken) {
-                showMessage('Please complete the captcha verification.', 'error')
+                showMessage('Please complete the security verification to proceed.', 'error')
                 return
             }
 
             btn.disabled = true
-            btn.textContent = 'Please wait...'
+            btn.textContent = 'Processing...'
             hideMessage()
 
             if (currentMode === 'signup') {
@@ -308,7 +307,7 @@
             const fullName = document.getElementById('fullName').value.trim()
             const mobile   = document.getElementById('mobileNumber').value.trim()
 
-            const { data, error } = await client.auth.signUp({
+            const { error } = await client.auth.signUp({
                 email,
                 password,
                 options: {
@@ -320,7 +319,7 @@
             if (error) {
                 showMessage(error.message, 'error')
             } else {
-                showMessage('Account created successfully. You may now log in.', 'success')
+                showMessage('Account created successfully. Switching to login...', 'success')
                 // Auto switch to login after signup
                 setTimeout(() => toggleMode(), 2000)
             }
@@ -330,7 +329,7 @@
 
         // Login
         async function handleLogin(email, password, captchaToken) {
-            const { data, error } = await client.auth.signInWithPassword({
+            const { error } = await client.auth.signInWithPassword({
                 email,
                 password,
                 options: { captchaToken: captchaToken }
@@ -340,8 +339,7 @@
                 showMessage(error.message, 'error')
             } else {
                 showMessage('Login successful. Redirecting securely...', 'success')
-                // 🔁 Change 'dashboard.html' to your next page
-              setTimeout(() => window.location.href = 'https://saithwork28-hue.github.io/projects/', 1500)
+                setTimeout(() => window.location.href = 'https://saithwork28-hue.github.io/projects/', 1500)
             }
 
             if (typeof hcaptcha !== 'undefined') hcaptcha.reset()
@@ -356,16 +354,25 @@
                 return
             }
 
+            const captchaToken = typeof hcaptcha !== 'undefined' ? hcaptcha.getResponse() : ''
+            if (!captchaToken) {
+                showMessage('Please complete the security verification to proceed.', 'error')
+                return
+            }
+
             // Dynamically constructs the URL so it works on both localhost and production
             const { error } = await client.auth.resetPasswordForEmail(email, {
-                redirectTo: window.location.origin + window.location.pathname.replace('index.html', '') + 'reset.html'
+                redirectTo: window.location.origin + window.location.pathname.replace('index.html', '') + 'reset.html',
+                captchaToken: captchaToken
             })
 
             if (error) {
                 showMessage(error.message, 'error')
             } else {
-                showMessage('A password reset link has been dispatched to your email.', 'success')
+                showMessage('A password reset link has been sent to your email address.', 'success')
             }
+
+            if (typeof hcaptcha !== 'undefined') hcaptcha.reset()
         }
 
         // Google Sign-In
@@ -399,11 +406,11 @@
             const mobile = document.getElementById('popupMobile').value.trim()
 
             if (!/^\d{10}$/.test(mobile)) {
-                alert('Please enter a valid 10-digit mobile number.')
+                alert('Please provide a valid 10-digit mobile number.')
                 return
             }
 
-            const { data, error } = await client.auth.updateUser({
+            const { error } = await client.auth.updateUser({
                 data: { mobile: mobile }
             })
 
